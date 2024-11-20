@@ -36,7 +36,7 @@ Due to poor network connectivity, sometimes the mobile application will re-try t
 
 ## Structure
 
-You can start the project easily by running `docker-compose up -d`. This will start a mock for the 3rd party service and for the client application. We encourage to take a look at the different READMEs to understand the global picture.
+You can start the project easily by running `docker compose up -d --watch`. This will start a mock for the 3rd party service and for the client application. We encourage to take a look at the different READMEs to understand the global picture.
 
 ```
 .
@@ -50,7 +50,7 @@ You can start the project easily by running `docker-compose up -d`. This will st
     └── README.md
 ```
 
-If you want to perform some tests after your docker-compose is up, you can run the following cURL:
+If you want to perform some tests after your compose is up, you can run the following cURL:
 
 ```
 curl -H 'Content-Type: application/json' -X POST localhost:3100/transaction

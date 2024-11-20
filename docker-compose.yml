@@ -8,6 +8,19 @@ services:
   client:
     build: ./client
     environment:
-      YOUR_API: "http://thirdparty:3000" # replace with your new API
+      YOUR_API: "http://localhost:3200"
     ports:
       - "3100:3100"
+
+  api:
+    build: ./your_api
+    environment:
+      PORT: "3200"
+      THIRD_PARTY: "http://localhost:3000"
+    ports:
+      - "3200:3200"
+    develop:
+      watch:
+        - action: sync
+          path: ./your_api/src
+          target: /usr/src/app
