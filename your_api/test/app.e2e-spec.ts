@@ -20,7 +20,7 @@ describe('HTTP POST Transaction', () => {
 
   it('should return an initiated transaction with an id, and fast, and add a transactions to the DB', async () => {
     const startTime = performance.now();
-    const startTransactions = await transactionService.countAllTransactions();
+    const startTransactions = await transactionService.countAll();
     let transactionId;
 
     await request(app.getHttpServer())
@@ -37,7 +37,7 @@ describe('HTTP POST Transaction', () => {
 
       })
       .then(async () => {
-        const endTransactions = await transactionService.countAllTransactions();
+        const endTransactions = await transactionService.countAll();
         
         expect(endTransactions).toEqual(startTransactions + 1);
     })

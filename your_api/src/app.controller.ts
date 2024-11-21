@@ -11,7 +11,7 @@ export class AppController {
   @Post('/transaction')
   async postTransaction(@Body() createTransactionDto: CreateTransactionDto): Promise<TransactionDto> {
 
-    const transaction = await this.transactionService.createTransaction(createTransactionDto);
+    const transaction = await this.transactionService.create(createTransactionDto);
 
     return transaction;
   }
