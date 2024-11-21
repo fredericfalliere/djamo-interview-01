@@ -21,4 +21,8 @@ export class TransactionService {
     })
   }
 
+  async findById(id: number): Promise<TransactionDto | null> {
+    return this.prisma.transaction.findUnique({where: {id: id}});
+  }
+
 }
