@@ -9,8 +9,8 @@ const port = process.env.PORT || 3100;
 const yourApiUrl = process.env.YOUR_API || "http://localhost:3200";
 
 app.post("/transaction", (_, res) => {
-  const body = { id: randomUUID() };
-  console.log(`Request transaction creation with id = ${body.id}`);
+  const body = { amount: Math.floor(Math.random() * 99 + 1) };
+  console.log(`Request transaction with amount = ${body.id}`);
   axios
     .post(`${yourApiUrl}/transaction`, body)
     .then((yourResponse) => {

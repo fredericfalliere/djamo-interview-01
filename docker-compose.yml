@@ -1,22 +1,22 @@
 version: "3.8"
 services:
-  thirdparty:
-    build: ./thirdpartymock
-    ports:
-      - "3000:3000"
+  # thirdparty:
+  #   build: ./thirdpartymock
+  #   ports:
+  #     - "3000:3000"
 
-  client:
-    build: ./client
-    environment:
-      YOUR_API: "http://localhost:3200"
-    ports:
-      - "3100:3100"
+  # client:
+  #   build: ./client
+  #   environment:
+  #     YOUR_API: "http://api:3200"
+  #   ports:
+  #     - "3100:3100"
 
   api:
     build: ./your_api
     environment:
       PORT: "3200"
-      THIRD_PARTY: "http://localhost:3000"
+      THIRD_PARTY: "http://thirdparty:3000"
     ports:
       - "3200:3200"
     develop:

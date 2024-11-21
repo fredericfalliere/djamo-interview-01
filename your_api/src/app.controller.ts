@@ -1,17 +1,16 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
+import { TransactionModel } from './transaction.model';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
-
-  @Get('test')
-  getTest(): string {
-    return "this reload is hot";
+  @Post('/transaction')
+  postTransaction(): TransactionModel {
+    return {
+      id: 'test',
+      status: 'test'
+    }
   }
 }
