@@ -17,23 +17,25 @@ When talking to an API that is slow or failing, and we want the best end-user ex
 
 In order to keep our backend stateless, we have to have a database for all the transactions. Thanks to docker we can quickly heavy lift a PostgresSQL datase. Just a DB without caching at first.
 
-````
+```
 curl -H 'Content-Type: application/json' -X POST localhost:3100/transaction
 
 curl -H 'Content-Type: application/json' localhost:3100/transaction/XXX
-````
+```
 
-This should be a pretty good first unit of real work. Also, I want to scribble about Testing ! I love working by doing TDD, so I'll do that. I understand though that TDD in a startup environment could be seen as a hassle : and it's true. But in the long run it's really a practice that helps the software grows. Also it's a choice depending on the context : for instance if you have to have this backend as fast as possible maybe testing should not even be considered. So it's my choice to add Tests because I take this exercice as a way to work on my technical skills.
+This should be a pretty good first unit of real work. Also, I want to have a quick word about Testing ! I love working by doing TDD, so I'll do that. I understand though that TDD in a startup environment could be seen as a hassle. But in the long run it's really a practice that helps the software grows. Also it's a choice depending on the context : for instance if you have to have this backend as fast as possible maybe testing should not even be considered. So it's my choice to add Tests because I take this exercice as a way to work on my technical skills.
 
 Before testing : I think it's really the responsability of the client to create a transaction Id. In this exercice the client looks like a backend, but, typicaly a  client is a web app or website. It's a matter of responsability. Sooooo I'm updating the `client` folder file ; I'm not sure I have the right to do that. But it seems pretty important. 
 
 Instead of sending a `{ transactionId: XXX }`, the client will send `{ amount: XXX }` when creating a transaction. I've added :
  - `typestack/class-validator` library that provides slick decorators, so the DTO is easily understandable and has it's own logic
- - an end to end test : because testing the right format for the DTO, considering the NestJS context, could only be done that way.
+ - an end to end test : because testing the right format for the DTO, considering the NestJS context, could only be done that way. Also this whole project seems unfitted for Unit Testing. Since our third party API is already a mock, I'll just focus on e2e tests.
 
-Since our third party API is already a mock, I'll just focus on e2e tests.
+Now it's time to initate a DB with a Dockerfile it will be quickly done I think... (5 minutes later :) it was ! Docker is really an amazing tool.
 
-Now it's time to initate a DB with a Dockerfile it will be quickly done I think. 
+Using prisma as ORM or not is the next question I'm pondering. For a real life project, the answer would be yes almost automaticly. However here, I'll have only 3 Sql queries ! But since this is a test project that also follows the classic Djamo's stack, I'm pretty sure they are using Prisma so I'll use it too.
+
+
 
 
 

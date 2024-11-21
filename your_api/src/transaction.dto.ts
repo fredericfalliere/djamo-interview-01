@@ -1,7 +1,10 @@
 import { IsInt, Max, Min } from "class-validator";
 
 export enum TransactionStatus {
-    initiated
+    initiated,
+    sent,
+    success,
+    failure
 }
 
 export class CreateTransactionDto {
