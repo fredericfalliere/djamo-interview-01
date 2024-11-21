@@ -4,6 +4,10 @@ This web server has been bootstrapped with `nest-cli`, using Typescript with `st
 
 # Developer's log
 
+## 00. Setting up the development environment with docker compose
+
+I believe docker should not be reserved for productiom, but also for development. A `git clone` followed by `docker compose up --watch` should be the norm. Alas, NestJS framework does not comes with a solution out the box. A bit of configuration has been necessery to ensure hot reload works.
+
 ## 01. Let's plan the first thing to work on
 
 When talking to an API that is slow or failing, and we want the best end-user experience, the first thing to do is to introduce transactions states, store them, and add an API endpoint to have updates on these transactions.
@@ -23,6 +27,12 @@ This should be a pretty good first unit of real work. Also, I want to scribble a
 
 Before testing : I think it's really the responsability of the client to create a transaction Id. In this exercice the client looks like a backend, but, typicaly a  client is a web app or website. It's a matter of responsability. Sooooo I'm updating the `client` folder file ; I'm not sure I have the right to do that. But it seems pretty important. 
 
-## 00. Setting up the development environment with docker compose
+Instead of sending a `{ transactionId: XXX }`, the client will send `{ amount: XXX }` when creating a transaction. I've added :
+ - `typestack/class-validator` library that provides slick decorators, so the DTO is easily understandable and has it's own logic
+ - an end to end test : because testing the right format for the DTO, considering the NestJS context, could only be done that way.
 
-I believe docker should not be reserved for productiom, but also for development. A `git clone` followed by `docker compose up --watch` should be the norm. Alas, NestJS framework does not comes with a solution out the box. A bit of configuration has been necessery to ensure hot reload works.
+Moving on to
+
+
+
+

@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 
-describe('AppController (e2e)', () => {
+describe('HTTP POST Transaction', () => {
   let app: INestApplication;
 
   beforeEach(async () => {
@@ -15,12 +15,17 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/transaction (POST)', () => {
+  it('should fail if amount is a string', () => {
+    return request(app.getHttpServer())
+      .post('/transaction')
+      .send({ amount: 'ahah' })
+      .expect(400)
+  });
+
+  it('should fail if amount is incorrect', () => {
     return request(app.getHttpServer())
       .post('/transaction')
       .send({ amount: -2 })
-      // .set('Content-Type', 'application/json')
-      // .set('Accept', 'application/json')
-      .expect(422)
+      .expect(400)
   });
 });
