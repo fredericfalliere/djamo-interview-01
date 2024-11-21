@@ -30,13 +30,15 @@ describe('HTTP POST Transaction', () => {
       .expect((res) => {
         expect(res.body.amount).toEqual(15)
         expect(res.body.status).toEqual(0) 
-        expect(res.body.id).toEqual("dummyId");
+        expect(res.body.id).not.toBeNull();
+        transactionId = res.body.id;
         const time = performance.now() - startTime;
         expect(time).toBeLessThan(150);
+
       })
       .then(async () => {
         const endTransactions = await transactionService.countAllTransactions();
-
+        
         expect(endTransactions).toEqual(startTransactions + 1);
     })
   });

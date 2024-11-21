@@ -1,8 +1,8 @@
 -- CreateTable
-CREATE TABLE "transactions" (
+CREATE TABLE "transaction" (
     "id" SERIAL NOT NULL,
-    "amount" INTEGER,
-    "status" INTEGER,
+    "amount" INTEGER NOT NULL,
+    "status" INTEGER NOT NULL,
     "created_at" TIMESTAMPTZ(6) DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6) DEFAULT CURRENT_TIMESTAMP,
 

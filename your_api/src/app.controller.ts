@@ -9,12 +9,10 @@ export class AppController {
     private readonly thirdPartyService: ThirdPartyService) {}
 
   @Post('/transaction')
-  postTransaction(@Body() createTransactionDto: CreateTransactionDto): TransactionDto {
+  async postTransaction(@Body() createTransactionDto: CreateTransactionDto): Promise<TransactionDto> {
 
-    return {
-      id: "dummyId",
-      amount: createTransactionDto.amount,
-      status: TransactionStatus.initiated,
-    }
+    const transaction = await this.transactionService.createTransaction(createTransactionDto);
+
+    return transaction;
   }
 }

@@ -1,7 +1,7 @@
-CREATE TABLE transactions (
+CREATE TABLE Transaction (
 	id 			SERIAL PRIMARY KEY,
-	amount		integer,
-	status		integer,
-	created_at	TIMESTAMPTZ DEFAULT NOW(),
-	updated_at	TIMESTAMPTZ DEFAULT NOW()
+	amount		integer NOT NULL,
+	status		integer NOT NULL,
+	created_at	TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+	updated_at	TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );

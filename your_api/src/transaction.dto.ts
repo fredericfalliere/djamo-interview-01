@@ -11,11 +11,13 @@ export class CreateTransactionDto {
     @IsInt()
     @Min(1)
     @Max(100)
-    amount: number
+    amount: number;
 }
 
 export class TransactionDto {
-    id:string
+    id:number
     amount:number
     status: TransactionStatus
+    created_at: Date
+    updated_at: Date
 }
