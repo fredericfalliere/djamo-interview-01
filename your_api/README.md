@@ -31,7 +31,9 @@ Instead of sending a `{ transactionId: XXX }`, the client will send `{ amount: X
  - `typestack/class-validator` library that provides slick decorators, so the DTO is easily understandable and has it's own logic
  - an end to end test : because testing the right format for the DTO, considering the NestJS context, could only be done that way.
 
-Moving on to
+Since our third party API is already a mock, I'll just focus on e2e tests.
+
+Now it's time to initate a DB with a Dockerfile it will be quickly done I think. 
 
 
 
