@@ -8,7 +8,7 @@ This web server has been bootstrapped with `nest-cli`, using Typescript with `st
 
 I believe docker should not be reserved for productiom, but also for development. A `git clone` followed by `docker compose up --watch` should be the norm. Alas, NestJS framework does not comes with a solution out the box. A bit of configuration has been necessery to ensure hot reload works.
 
-## 01. Let's plan the first thing to work on
+## 01. Let's plan the first day of work
 
 When talking to an API that is slow or failing, and we want the best end-user experience, the first thing to do is to introduce transactions states, store them, and add an API endpoint to have updates on these transactions.
 
@@ -35,7 +35,24 @@ Now it's time to initate a DB with a Dockerfile it will be quickly done I think.
 
 Using prisma as ORM or not is the next question I'm pondering. For a real life project, the answer would be yes almost automaticly. However here, I'll have only 3 Sql queries ! But since this is a test project that also follows the classic Djamo's stack, I'm pretty sure they are using Prisma so I'll use it too.
 
+A bit of refactor and it's the end of the day !
 
+## 02. Testing the third party
+
+In order to test all the cases, especially regarding the third party mock server, I decide to modify it. Tests are usually in 3 steps : `given` / `when` / `then`. Each test case should have, in the `given` paragraph, something that looks like this :
+
+```
+mockThirdParty.putWorkingConditions({
+        timeToAnswer: 20,
+        forgetToCallbackTheWebhook: true,
+    })
+```
+
+These tests are IMO the best solution because the crux of the matter here is to test our interaction with this third party API. If we don't do that, then ... to ensure all use cases are covered we would have to launch the one and only test we could write a big number of times. That does not seem like a good solution! I'm aware this will require a lot more time, but once it's set up, testing will be a breeze, also updating the mock server to cover new cases will also be easier, and I would sleep well knowing all cases are tightly covered. Also a good thing is since we are not mocking the service in our API, *actual* HTTP request are going through. From experience, handling then is not trivial : therefore, having them under the test laser beam is good.
+
+Some tests case will be handled differently :
+  - simulating a full server shutdown : maybe just changing the `process.env.THIRD_PARTY` should be enough, and returning a 503
+  - timeouts
 
 
 

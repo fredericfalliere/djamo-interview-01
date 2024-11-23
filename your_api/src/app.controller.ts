@@ -13,6 +13,8 @@ export class AppController {
 
     const transaction = await this.transactionService.create(createTransactionDto);
 
+    this.thirdPartyService.postTransaction(transaction);
+
     return transaction;
   }
 }

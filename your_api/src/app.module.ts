@@ -5,9 +5,10 @@ import { ValidationPipe } from './validation.pipe';
 import { APP_PIPE } from '@nestjs/core';
 import { ThirdPartyService } from './thirdParty.service';
 import { PrismaService } from './prisma.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [],
+  imports: [HttpModule],
   controllers: [AppController],
   providers: [
     TransactionService,

@@ -1,8 +1,8 @@
 services:
-  # thirdparty:
-  #   build: ./thirdpartymock
-  #   ports:
-  #     - "3000:3000"
+  thirdparty:
+    build: ./thirdpartymock
+    ports:
+      - "3000:3000"
 
   # client:
   #   build: ./client
