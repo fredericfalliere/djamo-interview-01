@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { CreateTransactionDto, TransactionDto, TransactionStatus } from './transaction.dto';
-import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class TransactionService {
@@ -12,10 +11,10 @@ export class TransactionService {
     return this.prisma.transaction.count();
   }
 
-  async create(createTransactionDto: CreateTransactionDto): Promise<TransactionDto > {
+  async insert(createTransactionDto: CreateTransactionDto): Promise<TransactionDto > {
     return this.prisma.transaction.create({
       data: {
-        ...createTransactionDto,
+        amount: createTransactionDto.amount,
         status: TransactionStatus.initiated
       }
     })

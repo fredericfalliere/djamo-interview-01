@@ -51,9 +51,12 @@ mockThirdParty.putWorkingConditions({
 These tests are IMO the best solution because the crux of the matter here is to test our interaction with this third party API. If we don't do that, then ... to ensure all use cases are covered we would have to launch the one and only test we could write a big number of times. That does not seem like a good solution! I'm aware this will require a lot more time, but once it's set up, testing will be a breeze, also updating the mock server to cover new cases will also be easier, and I would sleep well knowing all cases are tightly covered. Also a good thing is since we are not mocking the service in our API, *actual* HTTP request are going through. From experience, handling then is not trivial : therefore, having them under the test laser beam is good.
 
 Some tests case will be handled differently :
-  - simulating a full server shutdown : maybe just changing the `process.env.THIRD_PARTY` should be enough, and returning a 503
-  - timeouts
+  - simulating a full server shutdown : maybe just changing the `process.env.THIRD_PARTY` should be enough ; also adding a workingCondition to return 503 immediatly
+  - timeouts and 504
 
+A quick note about testing with Jest : a failing test that has a set timeout inside of it will display an error that is not relevant `thrown: "Exceeded timeout of 5000 ms for a test.`. I'm not sure why. If the same test passes, this timeout error is not thrown by Jest, so that's a bit weird. So please ignore these Jest message in this case and please focus on implementing the test ¯\\_(ツ)_/¯
 
+Actually the `workingConditions` should be passed directly into `HTTP Post /transaction` because otherzise the thirdParty state management would be hard to manage. It's simpler that way.
 
+A caveat I only now see is about the webhook. Nest e2e tests with `supertest` only simulate an HTTP server. Meaning the webhook sent fron the thirdparty will never be received by our server. So that will have to be simulated in the test. This solution is not ideal.
 

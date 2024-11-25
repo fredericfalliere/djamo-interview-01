@@ -1,4 +1,4 @@
-import { IsInt, Max, Min } from "class-validator";
+import { IsInt, IsObject, IsOptional, Max, Min } from "class-validator";
 
 export enum TransactionStatus {
     initiated,
@@ -7,11 +7,21 @@ export enum TransactionStatus {
     failure
 }
 
+export class WorkingConditionsDto {
+    shouldTimeout: boolean
+    shouldTimeoutAndWork: boolean
+    shouldSendWebhook: boolean
+}
+
 export class CreateTransactionDto {
     @IsInt()
     @Min(1)
     @Max(100)
     amount: number;
+
+    @IsObject()
+    @IsOptional()
+    workingConditions: WorkingConditionsDto;
 }
 
 export class TransactionDto {

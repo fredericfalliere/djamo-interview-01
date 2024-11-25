@@ -10,7 +10,7 @@ const yourApiUrl = process.env.YOUR_API || "http://localhost:3200";
 
 app.post("/transaction", (_, res) => {
   const body = { amount: Math.floor(Math.random() * 99 + 1) };
-  console.log(`Request transaction with amount = ${body.id}`);
+  console.log(`Request transaction with amount = ${body.amount}`);
   axios
     .post(`${yourApiUrl}/transaction`, body)
     .then((yourResponse) => {

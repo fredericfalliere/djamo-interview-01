@@ -21,17 +21,20 @@ const sendWebhook = (id) => {
     .catch(() => console.log(`Could not post webhook for ${id}`));
 };
 
+
 app.post("/transaction", (req, res) => {
-  console.log("Received request", req.body);
+  console.log("POST /transaction", req.body);
   const status = Math.random() > 1 / 3 ? "completed" : "declined";
   const { id, webhookUrl } = req.body;
+  const workingConditions = req.body.workingConditions
 
   // 10% of the time, will timeout. Half of the time, the transaction is actually processed.
-  const shouldTimeout = Math.random() < 1 / 10;
+  const shouldTimeout = workingConditions ? workingConditions.shouldTimeout : Math.random() < 1 / 10;
   if (shouldTimeout) {
     console.log("Will timeout");
-    const shouldWork = Math.random() > 1 / 2;
+    const shouldWork = workingConditions ? workingConditions.shouldTimeoutAndWork : Math.random() > 1 / 2;
     if (shouldWork) {
+      console.log("... but will actually work");
       simulateLatency(getTimeoutLag()).then(() => {
         transactions[id] = { id, status, webhookUrl };
       });
@@ -43,7 +46,7 @@ app.post("/transaction", (req, res) => {
   transactions[id] = { id, status: "pending", webhookUrl };
 
   // Schedule webhook, for 80% of the cases
-  const shouldSendWebhook = Math.random() > 1 / 5;
+  const shouldSendWebhook = workingConditions ? workingConditions.shouldSendWebhook : Math.random() > 1 / 5;
   if (shouldSendWebhook) {
     simulateLatency(getWebhookLag()).then(() => sendWebhook(id));
   }

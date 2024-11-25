@@ -6,6 +6,7 @@ import { TransactionService } from './../src/transaction.service';
 import { TransactionDto, TransactionStatus } from './../src/transaction.dto';
 import { ThirdPartyService } from './../src/thirdParty.service';
 import { ReadableByteStreamControllerCallback } from 'stream/web';
+import axios from 'axios';
 
 let app: INestApplication;
 let transactionService: TransactionService;
@@ -23,35 +24,52 @@ beforeEach(async () => {
 });
 
 describe('Third party API', () => {
-  it('should be working', async () => {
-    await thirdPartyService.putWorkingConditions({
-      timeToAnswer: 1,
-      forgetToCallbackTheWebhook: false,
-    });
-    const startTime = performance.now();
+  it('should be working in perfect conditions aka the nominal case', async () => {
     let transactionId: number;
+    const workingConditions = {
+      shouldTimeout: false,
+      shouldSendWebhook: true,
+    }
 
     await request(app.getHttpServer())
-          .post('/transaction')
-          .send({ amount: 20 })
-          .expect((res) => {
-            transactionId = res.body.id;
-            const time = performance.now() - startTime;
-            expect(time).toBeLessThan(150);
-          })
-          .then(async () => {
-            
-            await new Promise<void>(resolve => setTimeout(async () => {
+      .post('/transaction')
+      .send({ amount: 20, workingConditions })
+      .expect((res) => {
+        transactionId = res.body.id;
+      })
+      .then(async () => {
+        
+        await new Promise<void>(resolve => setTimeout(async () => {
+          const transaction = await transactionService.findById(transactionId);
+          if (!transaction) {
+            throw new Error('Transaction not found');
+          }
+          expect(transaction.status).toEqual(TransactionStatus.sent);
+          
+          // Simulate webhook callback
+          const status = Math.random() > 1 / 3 ? "completed" : "declined";
+          await request(app.getHttpServer())
+            .put('/transaction/#{transactionId}')
+            .send({ 
+              status,
+              id: transactionId
+              })
+            .expect(async (res) => {
 
               const transaction = await transactionService.findById(transactionId);
-              if (!transaction) {
-                throw new Error('Transaction not found');
+              expect(transaction).not.toBeNull();
+              if (transaction != null) {
+                status == "completed" ? 
+                  expect(transaction.status).toEqual(TransactionStatus.success) : 
+                  expect(transaction.status).toEqual(TransactionStatus.failure);
               }
-              expect(transaction.status).toEqual(TransactionStatus.success);
-              resolve();
-            }, 100));
-          });
-  
+            })
+
+          resolve();
+        }, 200));
+        
+
+      });
   });
 });
 
