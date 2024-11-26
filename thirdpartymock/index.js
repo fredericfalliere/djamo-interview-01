@@ -16,6 +16,7 @@ const simulateLatency = (latency) => {
 
 const sendWebhook = (id) => {
   const { status, webhookUrl } = transactions[id];
+  console.log("Sending webhook url for id=", id, " status=", status, " webhookUrl=",  webhookUrl);
   axios
     .post(webhookUrl, { id, status })
     .catch(() => console.log(`Could not post webhook for ${id}`));
@@ -23,6 +24,7 @@ const sendWebhook = (id) => {
 
 
 app.post("/transaction", (req, res) => {
+  console.log("=================")
   console.log("POST /transaction", req.body);
   const status = Math.random() > 1 / 3 ? "completed" : "declined";
   const { id, webhookUrl } = req.body;
@@ -45,14 +47,18 @@ app.post("/transaction", (req, res) => {
   // Persist the transaction in memory
   transactions[id] = { id, status: "pending", webhookUrl };
 
+  console.log("Added your transaction to our local database")
+
   // Schedule webhook, for 80% of the cases
   const shouldSendWebhook = workingConditions ? workingConditions.shouldSendWebhook : Math.random() > 1 / 5;
   if (shouldSendWebhook) {
+    console.log("Will send webhook eventually")
     simulateLatency(getWebhookLag()).then(() => sendWebhook(id));
   }
 
   // Return the response otherwise
   simulateLatency(getResponseLag()).then(() => {
+    console.log("Returning the response")
     transactions[id].status = status;
     res.send(transactions[id]);
   });

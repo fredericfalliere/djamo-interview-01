@@ -2,6 +2,7 @@ import { Controller, Post, Body, Logger } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto, TransactionDto, TransactionStatus } from './transaction.dto';
 import { ThirdPartyService } from './thirdParty.service';
+import { create } from 'domain';
 
 @Controller()
 export class AppController {
@@ -11,13 +12,15 @@ export class AppController {
 
   @Post('/transaction')
   async postTransaction(@Body() createTransactionDto: CreateTransactionDto): Promise<TransactionDto> {
-    this.logger.log(`Post transaction ${JSON.stringify(createTransactionDto)}`);
+    this.logger.log(`Post /transaction with amount=${createTransactionDto.amount}`);
     
     const workingConditions = { ...createTransactionDto.workingConditions };
 
     const transaction = await this.transactionService.insert(createTransactionDto);
 
-    this.thirdPartyService.postTransaction(transaction);
+    this.thirdPartyService.postTransaction(transaction, workingConditions, (status) => {
+      this.transactionService.updateStatus(transaction.id, status == "completed" ? TransactionStatus.success : TransactionStatus.failure);
+    });
 
     return transaction;
   }

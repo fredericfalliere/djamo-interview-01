@@ -1,8 +1,7 @@
 import { IsInt, IsObject, IsOptional, Max, Min } from "class-validator";
 
 export enum TransactionStatus {
-    initiated,
-    sent,
+    initiated=1,
     success,
     failure
 }

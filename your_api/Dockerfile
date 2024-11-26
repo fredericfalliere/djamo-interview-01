@@ -6,4 +6,4 @@ COPY src/ .
 COPY prisma/ .
 RUN npm install
 RUN npx prisma generate 
-CMD npm run start
+CMD npm run start:dev

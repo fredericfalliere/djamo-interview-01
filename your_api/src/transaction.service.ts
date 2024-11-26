@@ -20,6 +20,10 @@ export class TransactionService {
     })
   }
 
+  async updateStatus(id: number, status: TransactionStatus): Promise<TransactionDto> {
+    return this.prisma.transaction.update({where: {id: id}, data: {status: status}});
+  }
+
   async findById(id: number): Promise<TransactionDto | null> {
     return this.prisma.transaction.findUnique({where: {id: id}});
   }

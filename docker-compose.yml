@@ -11,19 +11,20 @@ services:
   #   ports:
   #     - "3100:3100"
 
-  # api:
-  #   build: ./your_api
-  #   environment:
-  #     PORT: "3200"
-  #     THIRD_PARTY: "http://thirdparty:3000"
-  #     DATABASE_URL: "postgresql://docker:dontUseThisPassword@db:5432/api_db?schema=public"
-  #   ports:
-  #     - "3200:3200"
-  #   develop:
-  #     watch:
-  #       - action: sync
-  #         path: ./your_api/src
-  #         target: /usr/src/app
+  api:
+    build: ./your_api
+    environment:
+      PORT: "3200"
+      WEBHOOK_URL: "http://api:3200"
+      THIRD_PARTY: "http://thirdparty:3000"
+      DATABASE_URL: "postgresql://docker:dontUseThisPassword@db:5432/api_db?schema=public"
+    ports:
+      - "3200:3200"
+    develop:
+      watch:
+        - action: sync
+          path: ./your_api/src
+          target: /usr/src/app
 
   db:
     build: ./db

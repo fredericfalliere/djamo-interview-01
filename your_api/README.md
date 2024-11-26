@@ -59,4 +59,3 @@ A quick note about testing with Jest : a failing test that has a set timeout ins
 Actually the `workingConditions` should be passed directly into `HTTP Post /transaction` because otherzise the thirdParty state management would be hard to manage. It's simpler that way.
 
 A caveat I only now see is about the webhook. Nest e2e tests with `supertest` only simulate an HTTP server. Meaning the webhook sent fron the thirdparty will never be received by our server. So that will have to be simulated in the test. This solution is not ideal.
-
