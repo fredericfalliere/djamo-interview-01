@@ -2,8 +2,20 @@ import { IsInt, IsObject, IsOptional, Max, Min } from "class-validator";
 
 export enum TransactionStatus {
     initiated=1,
-    success,
-    failure
+    sent=2,
+    success=3,
+    declined=4,
+    unknown=99
+}
+
+export function thirdPartyStatusToTransactionStatus(status: string): TransactionStatus {
+    if (status == "completed") {
+        return TransactionStatus.success;
+    } else if (status == "declined") {
+        return TransactionStatus.declined;
+    } else {
+        return TransactionStatus.unknown;
+    }
 }
 
 export class WorkingConditionsDto {
@@ -29,4 +41,9 @@ export class TransactionDto {
     status: TransactionStatus
     created_at: Date
     updated_at: Date
+}
+
+export class ThirdPartyTransactionDto {
+    id:number
+    status: string
 }

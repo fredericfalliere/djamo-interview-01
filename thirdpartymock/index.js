@@ -41,7 +41,10 @@ app.post("/transaction", (req, res) => {
         transactions[id] = { id, status, webhookUrl };
       });
     }
-    return simulateLatency(30_000).then(() => res.status(504).send("Timeout"));
+    return simulateLatency(30_000).then(() => {
+      console.log("Return 504");
+      res.status(504).send("Timeout")
+    });
   }
 
   // Persist the transaction in memory
@@ -65,12 +68,19 @@ app.post("/transaction", (req, res) => {
 });
 
 app.get("/transaction/:id", (req, res) => {
+  console.log("=================")
+  console.log("GET /transaction/", req.params.id);
   const transaction = transactions[req.params.id];
   if (transaction === undefined) {
     res.status(404).send();
   } else {
     res.send(transaction);
   }
+});
+
+
+app.get("/transactions/", (req, res) => {
+  res.send(transactions);
 });
 
 app.listen(port, () => {

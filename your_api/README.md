@@ -43,8 +43,9 @@ In order to test all the cases, especially regarding the third party mock server
 
 ```
 mockThirdParty.putWorkingConditions({
-        timeToAnswer: 20,
-        forgetToCallbackTheWebhook: true,
+      shouldTimeout: true,
+      shouldTimeoutAndWork: true,
+      shouldSendWebhook: false,
     })
 ```
 
@@ -58,4 +59,26 @@ A quick note about testing with Jest : a failing test that has a set timeout ins
 
 Actually the `workingConditions` should be passed directly into `HTTP Post /transaction` because otherzise the thirdParty state management would be hard to manage. It's simpler that way.
 
-A caveat I only now see is about the webhook. Nest e2e tests with `supertest` only simulate an HTTP server. Meaning the webhook sent fron the thirdparty will never be received by our server. So that will have to be simulated in the test. This solution is not ideal.
+A caveat I only now see is about the webhook. Nest e2e tests with `supertest` only simulate an HTTP server. Meaning the webhook sent fron the thirdparty will never be received by our server. So that will have to be simulated in the test.
+
+## 03. My toughts about remote work
+
+So accross the span of a few days I've tried to work as if I was employed as a full-time remote employee. We have a 8 month old baby so it was hard for my wife to accept more than 1 full day of work ... when I'm not actually employed. We are actively looking for a nany.
+
+I have an office space in the house so that was a nice. I found out that working in the kitchen with the baby is almost impossible. Same as working and watching over baby. But the automated tests make it easier to have interuption : you know what you have to do based on the tests results.
+
+## 04. Back to testing
+
+The next test to implement is the one where the server times out _and_ does actually work i.e. the transaction is stored in the third party server.
+
+I'm questionning what would be a good timeout on our side. Because if the third party can timeout after 120seconds, I don't think it's a good idea to let a connexion open for that long. Actually I it's bad because it takes unnessessary resources for a long time.
+
+So what should our behaviour concercing failed requests to the third party ? Usually, a failed request means, well, something failed. But here, somehow, it can fail, but still work. This is tricky because if we tell our client that the transaction failed, but it actually went through, the client will maybe try to resend the transaction and potentially loose the money two times. That's not acceptable. Actually how on earth a third party that handles money could work so badly ? Anyway in our case a solution would be to flag the transaction as `status: pending`, and ask the third party about our transaction after a certain amount of time, and update or status accordingly.
+
+To check the status in case of an error after some time, `redis` is a good solution. It's a persisted queue of tasks. In case of timeout, or any other error for that matter, we could schedule a task to check the status with the api.
+
+To manually test here is an example `curl` request  :
+
+```
+curl -H 'Content-Type: application/json' -d '{"amount":22, "workingConditions": { "shouldTimeout": true, "shouldTimeoutAndWork": true, "shouldSendWebhook": false } }' localhost:3200/transaction
+```
