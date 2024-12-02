@@ -7,30 +7,32 @@ import { thirdPartyStatusToTransactionStatus, TransactionStatus } from "./transa
 
 @Processor('queue')
 export class CheckTransactionProcessor {
-  private readonly logger = new Logger(CheckTransactionProcessor.name);
-  constructor(private readonly transactionService: TransactionService, 
-    private readonly thirdPartyService: ThirdPartyService) {}
-
-  @Process('check-transaction')
-  async handleTask(job: Job) {
-    let transaction: any = null;
-    const { transactionId } = job.data;
-    this.logger.debug(`Checking transaction ${transactionId}`);
-
-    try {
-      transaction = await this.thirdPartyService.findById(transactionId);
-    } catch (error) {
-      this.logger.error(`Error finding transaction ${transactionId}`, error);
-      return;
+    private readonly logger = new Logger(CheckTransactionProcessor.name);
+    constructor(private readonly transactionService: TransactionService, 
+        private readonly thirdPartyService: ThirdPartyService) {}
+        
+        @Process('check-transaction')
+        async handleTask(job: Job) {
+            let transaction: any = null;
+            const { transactionId } = job.data;
+            this.logger.debug(`Checking transaction ${transactionId}`);
+            
+            try {
+                transaction = await this.thirdPartyService.findById(transactionId);
+            } catch (error) {
+                this.logger.error(`Error finding transaction ${transactionId}`, error);
+                return;
+            }
+            
+            if (transaction == null) {
+                this.logger.error(`Transaction ${transactionId} not found : will be marked as failed`);
+                await this.transactionService.updateStatus(transactionId, TransactionStatus.failed);
+                return;
+            } else {
+                const status = thirdPartyStatusToTransactionStatus(transaction.status);
+                await this.transactionService.updateStatus(transactionId, status);
+            }
+            
+        }
+        
     }
-
-    if (transaction == null) {
-      this.logger.error(`Transaction ${transactionId} not found`);
-      return;
-    }
-
-    const status = thirdPartyStatusToTransactionStatus(transaction.status);
-    await this.transactionService.updateStatus(transactionId, status);
-  }
-
-}
