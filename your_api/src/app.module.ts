@@ -11,7 +11,7 @@ import { CheckTransactionProcessor } from './checkTransaction.processor';
 
 @Module({
   imports: [
-    HttpModule.register({ timeout: 5_000 }),
+    HttpModule.register({ timeout: 10_000 }),
     BullModule.forRoot({
       redis: {
         host: process.env.REDIS_HOST,

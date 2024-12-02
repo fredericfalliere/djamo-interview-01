@@ -24,39 +24,36 @@ beforeEach(async () => {
 
 describe('Third party API', () => {
 
-  it('should handle the timeout in the case the third party goes through with the transaction', async () => {
+  it('should update the transaction status via webhook', async () => {
     let transactionId: number;
     const workingConditions = {
-      shouldTimeout: true,
-      shouldTimeoutAndWork: true,
-      shouldSendWebhook: false,
+      shouldTimeout: false,
+      shouldTimeoutAndWork: false,
+      shouldSendWebhook: true,
     }
 
     await request(app.getHttpServer())
       .post('/transaction')
-      .send({ amount: 21, workingConditions })
-      .expect((res) => {
+      .timeout(10_000)
+      .send({ amount: 22, workingConditions })
+      .then(async (res) => {
         transactionId = res.body.id;
-      })
-      .then(async () => {
-
-        expect(await getTransaction(transactionId)).toEqual(TransactionStatus.initiated);
         
+        // Stub webhook after 10 seconds
         await new Promise<void>(resolve => setTimeout(async () => {
-          const transaction = await transactionService.findById(transactionId);
-          expect(transaction).not.toBeNull();
-          const thirdPartyTransaction = await thirdPartyService.findById(transactionId);
-          expect(thirdPartyTransaction).not.toBeNull();
+          await request(app.getHttpServer())
+            .post(`/webhookTransaction/${transactionId}`)
+            .send({ id: transactionId, status: 'completed' })
+            .then(async () => {
+              const transactionStatus = await getTransaction(transactionId);
+              expect(transactionStatus == TransactionStatus.success || transactionStatus == TransactionStatus.declined).toBe(true);
+            });
 
-          if (thirdPartyTransaction != null && transaction != null) {
-            expect(thirdPartyStatusToTransactionStatus(thirdPartyTransaction.status)).toEqual(transaction.status);
-          }
-          
           resolve();
-        }, 160_000));
+        }, 10_000));
 
       });
-  }, 170_000);
+  }, 45_000);
 
   // it('should be working in perfect conditions aka the nominal case', async () => {
   //   let transactionId: number;

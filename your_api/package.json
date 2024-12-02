@@ -8,8 +8,8 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "cross-env THIRD_PARTY=http://localhost:3000 REDIS_HOST=localhost nest start",
-    "start:dev": "cross-env THIRD_PARTY=http://localhost:3000 REDIS_HOST=localhost nest start --watch",
+    "start": "cross-env WEBHOOK_URL=http://localhost:3200  THIRD_PARTY=http://localhost:3000 REDIS_HOST=localhost nest start",
+    "start:dev": "cross-env WEBHOOK_URL=http://localhost:3200  THIRD_PARTY=http://localhost:3000 REDIS_HOST=localhost nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -17,7 +17,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "cross-env THIRD_PARTY=http://localhost:3000 REDIS_HOST=localhost jest --config ./test/jest-e2e.json --detectOpenHandles"
+    "test:e2e": "cross-env WEBHOOK_URL=http://localhost:3200 THIRD_PARTY=http://localhost:3000 REDIS_HOST=localhost jest --config ./test/jest-e2e.json --detectOpenHandles"
   },
   "dependencies": {
     "@nestjs/axios": "^3.1.2",

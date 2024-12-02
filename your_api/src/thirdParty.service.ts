@@ -38,7 +38,7 @@ export class ThirdPartyService {
         this.httpService.post(`${process.env.THIRD_PARTY}/transaction`, { 
           id: transaction.id,
           amount: transaction.amount,
-          webhookUrl: `${process.env.WEBHOOK_URL}/transaction/${transaction.id}`,
+          webhookUrl: `${process.env.WEBHOOK_URL}/webhookTransaction/${transaction.id}`,
           workingConditions
         }).pipe(
           tap((res) => {
