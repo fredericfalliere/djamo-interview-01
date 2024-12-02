@@ -43,7 +43,7 @@ mockThirdParty.putWorkingConditions({
     })
 ```
 
-These tests are IMO the best solution because the crux of the matter here is to test our interaction with this third party API. If we don't do that, then ... to ensure all use cases are covered we would have to launch the one and only test we could write a big number of times. That does not seem like a good solution! I'm aware this will require a lot more time, but once it's set up, testing will be a breeze, also updating the mock server to cover new cases will also be easier, and I would sleep well knowing all cases are tightly covered. Also a good thing is since we are not mocking the service in our API, *actual* HTTP request are going through. From experience, handling then is not trivial : therefore, having them under the test laser beam is good.
+The crux of the matter here is to test our interactions with this third party API. If we don't do that, then to ensure all use cases are covered we would have to launch the one and only test we could write a big number of times. That does not seem like a good solution! I'm aware this will require a lot more time, but once it's set up, testing will be a breeze, also updating the mock server to cover new cases will also be easier, and I would sleep well knowing all cases are tightly covered. Also a good thing is since we are not mocking the service in our API, *actual* HTTP request are going through. From experience, handling then is not trivial : therefore, having them under the test laser beam is really good.
 
 Actually the `workingConditions` should be passed directly into `HTTP Post /transaction` because otherzise the thirdParty state management would be hard to manage. It's simpler that way.
 
@@ -51,9 +51,9 @@ A caveat I only now see is about the webhook. Nest e2e tests with `supertest` on
 
 ## 03. My toughts about remote work
 
-So accross the span of a few days I've tried to work as if I was employed as a full-time remote employee. We have a 8 month old baby so it was hard for my wife to accept more than 1 full day of work ... when I'm not actually employed. We are actively looking for a nany.
+So accross the span of a few days I've tried to work as if I was employed as a full-time remote employee. We have an 8 month old baby so it was hard for my wife to accept more than 1 full day of work ... when I'm not actually employed. We are actively looking for a nany.
 
-I have an office space in the house so that was a nice. I found out that working in the kitchen with the baby is almost impossible. Same as working and watching over baby. But the automated tests make it easier to have interuption : you know what you have to do based on the tests results.
+I have an office space in the house so that was nice. I found out that working in the kitchen with the baby is almost impossible. Same as working and watching over baby. But the automated tests make it easier to have interuptions : you know what you have to do based on the tests results.
 
 ## 04. Back to testing
 
@@ -61,7 +61,7 @@ The next test to implement is the one where the server times out _and_ does actu
 
 I'm questionning what would be a good timeout on our side. Because if the third party can timeout after 120seconds, I don't think it's a good idea to let a connexion open for that long. Actually I it's bad because it takes unnessessary resources for a long time.
 
-So what should our behaviour concercing failed requests to the third party ? Usually, a failed request means, well, something failed. But here, somehow, it can fail, but still work. This is tricky because if we tell our client that the transaction failed, but it actually went through, the client will maybe try to resend the transaction and potentially loose the money two times. That's not acceptable. Actually how on earth a third party that handles money could work so badly ? Anyway in our case a solution would be to flag the transaction as `status: pending`, and ask the third party about our transaction after a certain amount of time, and update or status accordingly.
+So what should our behaviour concercing failed requests to the third party ? Usually, a failed request means, well, something failed. But here, somehow, it can fail, but still works. This is tricky because if we tell our client that the transaction failed, but it actually went through, the client will maybe try to resend the transaction and potentially loose the money two times. That's not acceptable. Actually how on earth a third party that handles money could work so badly ? Anyway in our case a solution would be to flag the transaction as `status: pending`, and ask the third party about our transaction after a certain amount of time, and update or status accordingly.
 
 To check the status in case of an error after some time, `redis` is a good solution. It's a persisted queue of tasks. In case of timeout, or any other error for that matter, we could schedule a task to check the status with the api.
 
@@ -73,7 +73,7 @@ curl -H 'Content-Type: application/json' -d '{"amount":22, "workingConditions": 
 
 ## 05. Next case to test :  the webhook
 
-Webhook testing may not be straightforward with this test stack. As I said above, e2e test only simulates our API http server. Incoming http request from third party's real http server will have nowhere to go. There is a solution however : we can stub that call inside the test.
+Webhook testing may not be straightforward with this test stack. As I said above, e2e test only simulate our API http server. Incoming http request from third party's real http server will have nowhere to go. There is a solution however : we can stub that call inside the test.
 
 A quick note about testing : for the previous test, about the timeout, I set the axios timeout to 5 seconds. And now I'm testing the webhook. But the webhook has lag, up to 30 seconds. In the section above of this developer's log I was writing that letting a connexion open for too long is bad. But how long is too long ? In other words, what is a good timeout time ?
 
@@ -81,7 +81,7 @@ A quick note about testing : for the previous test, about the timeout, I set the
 
 The default is 5 seconds. Since we are using a third party that is really slow, we could bump it to 10 seconds. But ultimatly this decision would have to be mitigated after some production use : if too much request timeout, the timeout time should be decreased because it would be useless to wait.
 
-There may be a misconception in the mock server  : the transaction returned can never be `pending`. For this webhook I think the nominal case is that the third party returns a `pending` transaction and then then wehook calls us with a `completed` or `declined` status. But at this point I feel unconfortable updating mock server without talking to someone at Djamo about its specs. But this renders the tests of the webhook useless because either :
+There may be a misconception in the mock server  : the transaction returned can never be `pending`. For this webhook I think the nominal case is that the third party returns a `pending` transaction and then the wehook calls us with a `completed` or `declined` status. But at this point I feel unconfortable updating mock server without talking to someone at Djamo about its specs. But this renders the tests and implementation of the webhook useless because either :
 
   - the server returns the transaction before the timeout
   - the server fails to return fast but we have a retry strategy in place
