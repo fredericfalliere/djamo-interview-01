@@ -40,6 +40,8 @@ app.post("/transaction", (req, res) => {
       simulateLatency(getTimeoutLag()).then(() => {
         transactions[id] = { id, status, webhookUrl };
       });
+    } else {
+      console.log("... will drop the transaction");
     }
     return simulateLatency(30_000).then(() => {
       console.log("Return 504");
@@ -69,8 +71,8 @@ app.post("/transaction", (req, res) => {
 
 app.get("/transaction/:id", (req, res) => {
   console.log("=================")
-  console.log("GET /transaction/", req.params.id);
   const transaction = transactions[req.params.id];
+  console.log("GET /transaction/", req.params.id, " ", transaction === undefined ? "not found":("it exists with status"+transaction.status));
   if (transaction === undefined) {
     res.status(404).send();
   } else {
