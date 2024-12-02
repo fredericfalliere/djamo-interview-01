@@ -1,6 +1,6 @@
-import { Controller, Post, Body, Logger } from '@nestjs/common';
+import { Controller, Post, Body, Logger, Param } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
-import { CreateTransactionDto, thirdPartyStatusToTransactionStatus, TransactionDto, TransactionStatus } from './transaction.dto';
+import { CreateTransactionDto, thirdPartyStatusToTransactionStatus, ThirdPartyTransactionDto, TransactionDto } from './transaction.dto';
 import { ThirdPartyService } from './thirdParty.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
@@ -11,6 +11,12 @@ export class AppController {
   constructor(private readonly transactionService: TransactionService, 
     private readonly thirdPartyService: ThirdPartyService,
     @InjectQueue('queue') private readonly queue: Queue,) {}
+
+  @Post('/webhookTransaction/:transactionId')
+  async webhookTransaction(@Param('transactionId') transactionId: number, @Body() webhookTransactionDto: ThirdPartyTransactionDto) {
+    this.logger.log(`Webhook received for transaction ${transactionId}`);
+    await this.transactionService.updateStatus(transactionId, thirdPartyStatusToTransactionStatus(webhookTransactionDto.status));
+  }
 
   @Post('/transaction')
   async postTransaction(@Body() createTransactionDto: CreateTransactionDto): Promise<TransactionDto> {
