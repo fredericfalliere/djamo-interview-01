@@ -71,7 +71,7 @@ describe('Third party API', () => {
 
         // Dropped transaction by the third party : after some time the transaction should be failed
         await new Promise<void>(resolve => setTimeout(async () => {
-          expect((await getTransaction(transactionId))).toEqual(TransactionStatus.failed);
+          expect((await getTransaction(transactionId))).toEqual(TransactionStatus.abandon);
           resolve();
         }, 140_000));
       });

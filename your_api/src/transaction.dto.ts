@@ -5,7 +5,7 @@ export enum TransactionStatus {
     sent=2,
     success=3,
     declined=4,
-    failed=5,
+    abandon=5,
     unknown=99
 }
 

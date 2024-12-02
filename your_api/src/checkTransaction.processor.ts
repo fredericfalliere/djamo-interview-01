@@ -26,7 +26,7 @@ export class CheckTransactionProcessor {
             
             if (transaction == null) {
                 this.logger.error(`Transaction ${transactionId} not found : will be marked as failed`);
-                await this.transactionService.updateStatus(transactionId, TransactionStatus.failed);
+                await this.transactionService.updateStatus(transactionId, TransactionStatus.abandon);
                 return;
             } else {
                 const status = thirdPartyStatusToTransactionStatus(transaction.status);
