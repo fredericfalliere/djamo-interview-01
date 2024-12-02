@@ -1,4 +1,4 @@
-import { IsInt, IsObject, IsOptional, Max, Min } from "class-validator";
+import { IsFQDN, IsInt, IsNumber, IsObject, IsOptional, IsString, Max, Min } from "class-validator";
 
 export enum TransactionStatus {
     initiated=1,

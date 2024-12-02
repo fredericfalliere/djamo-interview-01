@@ -25,7 +25,7 @@ export class CheckTransactionProcessor {
             }
             
             if (transaction == null) {
-                this.logger.error(`Transaction ${transactionId} not found : will be marked as failed`);
+                this.logger.error(`Transaction ${transactionId} not found : will be marked as abandon`);
                 await this.transactionService.updateStatus(transactionId, TransactionStatus.abandon);
                 return;
             } else {
