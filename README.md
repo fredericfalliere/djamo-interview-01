@@ -57,3 +57,19 @@ curl -H 'Content-Type: application/json' -X POST localhost:3100/transaction
 ```
 
 This will ask the client application to trigger a transaction creation. Which in turn will call your API.
+
+# How to start
+
+Run the whole stack : `docker compose up`
+
+To run automated end to end tests : `cd your_api && npm run test:e2e` ; you will need to have these containers started :
+
+  - `db`
+  - `thirdparty`
+  - `redis`
+
+You can start individual containers with `docker compose up db` for instance.
+
+Also you may consider reading developer's log in `your_api/README.md`.
+
+

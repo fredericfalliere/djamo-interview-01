@@ -21,11 +21,6 @@ services:
       REDIS_HOST: "redis"
     ports:
       - "3200:3200"
-    develop:
-      watch:
-        - action: sync
-          path: ./your_api/src
-          target: /usr/src/app
 
   db:
     build: ./db
