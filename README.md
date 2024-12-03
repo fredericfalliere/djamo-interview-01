@@ -1,3 +1,44 @@
+# How to start
+
+## Start and manual test
+
+`docker compose up`
+
+You can `curl` directly to our API on port `3200` for instance :
+
+```
+curl -H 'Content-Type: application/json' -d '{"amount":24}' localhost:3200/transaction
+```
+
+To isolate a test case, you may pass a `workingConditions` object, like so :
+
+```
+curl -H 'Content-Type: application/json' -d '{"amount":22, "workingConditions": { "shouldTimeout": true, "shouldTimeoutAndWork": true, "shouldSendWebhook": false } }' localhost:3200/transaction
+```
+
+- `shouldTimeout` : if true, the third party will return a 504
+- `shouldTimeoutAndWork` : if false and `shouldTimeout` true, the third party will drop the request
+- `shouldSendWebhook` : if true, will trigger the webhook, only applicable if `shouldTimeout` is false
+
+For more specs, please refer to `your_api/test/app.e2e-spec.ts`
+
+Also you may consider reading developer's log in `your_api/README.md`.
+
+## Automated test
+
+You will need to have these containers started :
+
+  - `db`
+  - `thirdparty`
+  - `redis`
+
+You can start individual containers with `docker compose up db` for instance.
+
+To run automated end to end tests : 
+
+`cd your_api && npm run test:e2e`
+
+
 # Djamo's take-home test for API Software Engineer candidates
 
 The goal of this test is to be a _work sample_. Instead of asking you to solve a quizz, implement fizzbuzz or a binary tree search, we would like you to work on something similar to our work. A very common task at Djamo is to integrate with third parties, and while we try to keep our services highly available, fast and reliable, unfortunately we often face issues with our partners.
@@ -57,19 +98,3 @@ curl -H 'Content-Type: application/json' -X POST localhost:3100/transaction
 ```
 
 This will ask the client application to trigger a transaction creation. Which in turn will call your API.
-
-# How to start
-
-Run the whole stack : `docker compose up`
-
-To run automated end to end tests : `cd your_api && npm run test:e2e` ; you will need to have these containers started :
-
-  - `db`
-  - `thirdparty`
-  - `redis`
-
-You can start individual containers with `docker compose up db` for instance.
-
-Also you may consider reading developer's log in `your_api/README.md`.
-
-

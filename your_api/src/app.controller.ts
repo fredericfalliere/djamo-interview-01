@@ -4,6 +4,7 @@ import { CreateTransactionDto, thirdPartyStatusToTransactionStatus, ThirdPartyTr
 import { ThirdPartyService } from './thirdParty.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { ATTEMPTS_TO_DELAY } from './checkTransaction.processor';
 
 @Controller()
 export class AppController {
@@ -32,7 +33,7 @@ export class AppController {
       },
       (err, transactionId) => {
         this.logger.log(`Queueing transaction ${transactionId} for retry`);
-        this.queue.add('check-transaction', { transactionId }, { delay: 122_000 });
+        this.queue.add('check-transaction', { transactionId, attempt: 0 }, { delay: ATTEMPTS_TO_DELAY[0] * 1000 });
       });
 
     return transaction;

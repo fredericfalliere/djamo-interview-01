@@ -65,7 +65,7 @@ So what should our behaviour concercing failed requests to the third party ? Usu
 
 To check the status in case of an error after some time, `redis` is a good solution. It's a persisted queue of tasks. In case of timeout, or any other error for that matter, we could schedule a task to check the status with the api.
 
-To manually test here is an example `curl` request (the automated test is in `app-e2e-spec.ts`)
+To manually test here is an example `curl` request
 
 ```
 curl -H 'Content-Type: application/json' -d '{"amount":22, "workingConditions": { "shouldTimeout": true, "shouldTimeoutAndWork": true, "shouldSendWebhook": false } }' localhost:3200/transaction
@@ -81,13 +81,43 @@ A quick note about testing : for the previous test, about the timeout, I set the
 
 The default is 5 seconds. Since we are using a third party that is really slow, we could bump it to 10 seconds. But ultimatly this decision would have to be mitigated after some production use : if too much request timeout, the timeout time should be decreased because it would be useless to wait.
 
-There may be a misconception in the mock server  : the transaction returned can never be `pending`. For this webhook I think the nominal case is that the third party returns a `pending` transaction and then the wehook calls us with a `completed` or `declined` status. But at this point I feel unconfortable updating mock server without talking to someone at Djamo about its specs. But this renders the tests and implementation of the webhook useless because either :
-
-  - the server returns the transaction before the timeout
-  - the server fails to return fast but we have a retry strategy in place
-
-The supposed-failing test I wrote for this test case corroborates this : the transaction is stored as success in our DB. So we don't even have to implement a webhook in our API's controller. This deserves a peer review though.
+The transaction returned can never be `pending`.
 
 
+## 06. Another case : the third party drops the requests
 
+It happens when it timeouts, the third party can decide to not store the transaction, therefore forgetting about it. The status check call would then return a 404. I don't know what would be the best thing to do : the client has been waiting for an update. We should not delete the transaction. Maybe we should simply tag the transaction as failed. The client will know its monney never left its wallet.
 
+Automated tests with long timeout value is time consuming. I did change the values on the mock in our API to speed up the process. I will need to be extra careful not to commit these.
+
+## 07. Improving the retry strategy
+
+Our retry strategy only consists of one status check call, scheduled two minutes after a failed call to the third party. This means the client will have to wait *at least* 2 minutes before knowing if the transaction is completed, declined or failed. That is not acceptable.
+
+Regarding calls to their status check API, in the spec it says
+
+> they could block our services if we request it too often
+
+What is too often ? In the current context, we don't know if we are blocked or not, and therefore no strategy can be choosen. Also, the status check concerns one transaction, what if they had an endpoint to check a pool of transactions... I'm going nowhere with this. Let's do with what we have and know.
+
+In older versions of Gmail, there used to something similar when loosing Internet connexion. To check if the user is back online it used small increment at first, then bigger. The user still had the option to check manually. This is very similar to our case : since we don't know the rate limit or if there are quotas.
+
+At first we use small intervals, like 1 seconds. After some time we progressivly increase by following Fibonaci or power of 2. The thresold, for a fast and responsive app should be IMHO 30 seconds. The intervals to call the status check API should be like this : `1s 1s 1s 1s 1s 1s 1s 1s 2s 3s 5s 8s 13s 21s 30s`. That way if the api is updated "fast" we lete our client know "fast" as well, but if it's longer, it will be longer for our client as well so nothing we can do here. Actually : we could let our client know that it is taking longer than expected, this will surely reassure him.
+
+The test case for this is `shouldTimeout: true` and `shouldTimeoutAndWork: true` because for our retry strategy to be started, we need an error status code : the timeout. And the transaction needs to be not dropped.
+
+```
+curl -H 'Content-Type: application/json' -d '{"amount":25, "workingConditions": { "shouldTimeout": true, "shouldTimeoutAndWork": true } }' localhost:3200/transaction
+```
+
+This outlines an edge case I didn't encounter until now, easily visible with this improved retry strategy. It's the fact that the third party doesn't store the transaction as `pending`. It could take up to 120 seconds for the transaction to be stored. If not stored, our API, as of now, marks it as `abandon`.
+
+There's a case where the third party *really* drops the transaction, without telling anyone. It's also in the timeout block. So we need the `abandon` status.
+
+Could we maybe use the fact we know the third party can take up to 120 seconds to store the transaction ? And only the retries that fail *and* that happen after 120 seconds from initial retry should be marked as `abandon`. In the meantime, transactions should be marked as `pending`.
+
+This solution seems really wobbly. What if this 120 seconds suddenly increases ? Transactions will be considered as `abandon`, and therefore the status check call will stop for them - but in truth they are still `pending`. 
+
+## 08. Shared with Djamo
+
+Time to share with Djamo :) I think I will keep working on this fun little project
