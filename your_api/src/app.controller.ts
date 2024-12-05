@@ -33,7 +33,16 @@ export class AppController {
       },
       (err, transactionId) => {
         this.logger.log(`Queueing transaction ${transactionId} for retry`);
-        this.queue.add('check-transaction', { transactionId, attempt: 0 }, { delay: ATTEMPTS_TO_DELAY[0] * 1000 });
+        this.queue.add('check-transaction', 
+          { 
+            transactionId, 
+            attempt: 0,
+            startedAt: performance.now(),
+          }, 
+          { 
+            delay: ATTEMPTS_TO_DELAY[0] * 1000 
+          }
+        );
       });
 
     return transaction;

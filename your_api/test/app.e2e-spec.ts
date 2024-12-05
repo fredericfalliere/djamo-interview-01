@@ -3,9 +3,10 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { TransactionService } from './../src/transaction.service';
-import { thirdPartyStatusToTransactionStatus, TransactionDto, TransactionStatus } from './../src/transaction.dto';
+import { TransactionStatus } from './../src/transaction.dto';
 import { ThirdPartyService } from './../src/thirdParty.service';
-import { ReadableByteStreamControllerCallback } from 'stream/web';
+import 'jest-expect-message';
+
 
 let app: INestApplication;
 let transactionService: TransactionService;
@@ -23,6 +24,34 @@ beforeEach(async () => {
 });
 
 describe('Third party API', () => {
+
+  it('should keep retrying on third-partys timeout that eventually work', async () => {
+    let transactionId: number;
+    const workingConditions = {
+      shouldTimeout: true,
+      shouldTimeoutAndWork: true,
+      shouldSendWebhook: false,
+    }
+    
+    request(app.getHttpServer())
+      .post('/transaction')
+      .send({ amount: 23, workingConditions })
+      .then(async (res) => { transactionId = res.body.id; });
+
+    await Promise.all([
+      new Promise<void>(resolve => setTimeout(async () => {
+        const transactionStatus = await getTransaction(transactionId);
+        expect(transactionStatus, "Transaction should be pending after 20 seconds").toEqual(TransactionStatus.pending);
+        resolve();
+      }, 20_000)),
+      new Promise<void>(resolve => setTimeout(async () => {
+        const transactionStatus = await getTransaction(transactionId);
+        expect([TransactionStatus.success, TransactionStatus.declined], "Transaction should be finished after 120 seconds").toContain(transactionStatus);
+        resolve();
+      }, 120_000))
+    ]);
+
+  }, 140_000);
 
   it('should update the transaction status via webhook', async () => {
     let transactionId: number;

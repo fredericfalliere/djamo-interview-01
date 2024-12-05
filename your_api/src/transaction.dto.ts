@@ -6,6 +6,7 @@ export enum TransactionStatus {
     success=3,
     declined=4,
     abandon=5,
+    pending=6,            
     unknown=99
 }
 

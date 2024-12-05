@@ -6,6 +6,7 @@ import { ThirdPartyService } from "./thirdParty.service";
 import { thirdPartyStatusToTransactionStatus, TransactionStatus } from "./transaction.dto";
 
 export const ATTEMPTS_TO_DELAY = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 5, 8, 13, 21, 30];
+export const FAULT_TOLERANCE_DELAY = 120_000;
 
 @Processor('queue')
 export class CheckTransactionProcessor {
@@ -17,7 +18,8 @@ export class CheckTransactionProcessor {
         @Process('check-transaction')
         async handleTask(job: Job) {
             let transaction: any = null;
-            const { transactionId, attempt } = job.data;
+            const { transactionId, attempt, startedAt } = job.data;
+            const newAttempt = attempt + 1;
             this.logger.debug(`Checking transaction ${transactionId}`);
             
             try {
@@ -28,19 +30,26 @@ export class CheckTransactionProcessor {
             }
             
             if (transaction == null) {
-                this.logger.error(`Transaction ${transactionId} not found : will be marked as abandon`);
-                await this.transactionService.updateStatus(transactionId, TransactionStatus.abandon);
+                const elapsedTime = performance.now() - job.data.startedAt;
+                if (elapsedTime < FAULT_TOLERANCE_DELAY) {
+                    this.logger.error(`Transaction ${transactionId} not found : will be retried because of our fault tolerance`);
+                    await this.transactionService.updateStatus(transactionId, TransactionStatus.pending);
+                    this.queue.add('check-transaction', { transactionId, attempt: newAttempt, startedAt }, { delay: this.calculateDelayForAttempt(newAttempt) });
+                } else {
+                    this.logger.error(`Transaction ${transactionId} not found : marked as abandon`);
+                    await this.transactionService.updateStatus(transactionId, TransactionStatus.abandon);
+                }
                 return;
             } else {
                 if (transaction.status == 'pending') {
-                    const newAttempt = attempt + 1;
-                    this.queue.add('check-transaction', { transactionId, attempt: newAttempt }, { delay: this.calculateDelayForAttempt(newAttempt) });
+                    this.logger.error(`Transaction ${transactionId} is pending : will be retried`);
+                    this.queue.add('check-transaction', { transactionId, attempt: newAttempt, startedAt }, { delay: this.calculateDelayForAttempt(newAttempt) });
                 } else {
+                    this.logger.error(`Transaction ${transactionId} is not pending : status=${transaction.status}`);
                     const status = thirdPartyStatusToTransactionStatus(transaction.status);
                     await this.transactionService.updateStatus(transactionId, status);
                 }
             }
-            
         }
 
         calculateDelayForAttempt(attempt: number): number {
