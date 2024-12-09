@@ -11,6 +11,12 @@ export class TransactionService {
     return this.prisma.transaction.count();
   }
 
+  async findAll(): Promise<TransactionDto[]> {
+    return this.prisma.transaction.findMany({
+      orderBy: [{ id : 'desc' }]
+    });
+  }
+
   async insert(createTransactionDto: CreateTransactionDto): Promise<TransactionDto > {
     return this.prisma.transaction.create({
       data: {

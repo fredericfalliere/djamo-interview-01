@@ -4,6 +4,7 @@ import { Job, Queue } from "bull";
 import { TransactionService } from "./transaction.service";
 import { ThirdPartyService } from "./thirdParty.service";
 import { thirdPartyStatusToTransactionStatus, TransactionStatus } from "./transaction.dto";
+import { TransactionGateway } from "./transaction.gateway";
 
 export const ATTEMPTS_TO_DELAY = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 5, 8, 13, 21, 30];
 export const FAULT_TOLERANCE_DELAY = 120_000;
@@ -13,7 +14,8 @@ export class CheckTransactionProcessor {
     private readonly logger = new Logger(CheckTransactionProcessor.name);
     constructor(private readonly transactionService: TransactionService, 
         private readonly thirdPartyService: ThirdPartyService,
-        @InjectQueue('queue') private readonly queue: Queue,) {}
+        @InjectQueue('queue') private readonly queue: Queue,
+        private readonly transactionGateway: TransactionGateway,) {}
         
         @Process('check-transaction')
         async handleTask(job: Job) {
@@ -49,6 +51,11 @@ export class CheckTransactionProcessor {
                     const status = thirdPartyStatusToTransactionStatus(transaction.status);
                     await this.transactionService.updateStatus(transactionId, status);
                 }
+            }
+
+            transaction = await this.transactionService.findById(transactionId);
+            if (transaction) {
+                this.transactionGateway.broadcastTransactionUpdate(transaction);
             }
         }
 

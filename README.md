@@ -38,6 +38,9 @@ To run automated end to end tests :
 
 `cd your_api && npm run test:e2e`
 
+## Flutter front
+
+There's a flutter front that allows to see the websocket in action. You may start it with your favorite IDE or with `flutter run`. This should be Dockerized but alas no docker image with the right flutter version has been found in the public space.
 
 # Djamo's take-home test for API Software Engineer candidates
 

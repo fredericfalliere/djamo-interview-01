@@ -8,6 +8,7 @@ import { PrismaService } from './prisma.service';
 import { HttpModule } from '@nestjs/axios';
 import { BullModule } from '@nestjs/bull';
 import { CheckTransactionProcessor } from './checkTransaction.processor';
+import { TransactionGateway } from './transaction.gateway';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CheckTransactionProcessor } from './checkTransaction.processor';
       useClass: ValidationPipe,
     },
     CheckTransactionProcessor,
+    TransactionGateway,
   ],
 })
 export class AppModule {}

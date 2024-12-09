@@ -121,3 +121,11 @@ This solution seems really wobbly. What if this 120 seconds suddenly increases ?
 ## 08. Shared with Djamo
 
 Time to share with Djamo :) I think I will keep working on this fun little project
+
+## 09. Webssockets and flutter front
+
+To really complete this exercise, I've added a front end, written in Flutter with the riverpod library. This frontend loads initial transasction and listen to the updates via Websocket with our API. So the UI auto refreshes when the API receives a `HTTP Post /transactions`, and also every time there is an update on the transaction, typically the state.
+
+
+
+
