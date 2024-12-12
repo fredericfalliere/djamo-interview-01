@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, Logger } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { TransactionService } from './../src/transaction.service';
@@ -11,6 +11,7 @@ import 'jest-expect-message';
 let app: INestApplication;
 let transactionService: TransactionService;
 let thirdPartyService: ThirdPartyService;
+const logger = new Logger("TEST");
 
 beforeEach(async () => {
   const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -23,35 +24,36 @@ beforeEach(async () => {
   thirdPartyService = app.get(ThirdPartyService);
 });
 
+afterAll(async () => {
+  await app.close();
+});
+
 describe('Third party API', () => {
 
   it('should keep retrying on third-partys timeouts, that eventually save the transaction in their DB', async () => {
-    let transactionId: number;
-    const workingConditions = {
-      shouldTimeout: true,
-      shouldTimeoutAndWork: true,
-      shouldSendWebhook: false,
-    }
-    
-    request(app.getHttpServer())
+    const postTransactionResult = await request(app.getHttpServer())
       .post('/transaction')
-      .send({ amount: 23, workingConditions })
-      .then((res) => { transactionId = res.body.id; });
+      .send({ amount: 23, workingConditions: {
+        shouldTimeout: true,
+        shouldTimeoutAndWork: true,
+        shouldSendWebhook: false,
+      }});
 
+    const transactionId = postTransactionResult.body.id;
     await Promise.all([
-      new Promise<void>(resolve => setTimeout(async () => {
+      new Promise<void>((resolve) => { setTimeout(async () => {
         const transactionStatus = await getTransaction(transactionId);
         expect(transactionStatus, "Transaction should be pending after 20 seconds").toEqual(TransactionStatus.pending);
         resolve();
-      }, 25_000)),
-      new Promise<void>(resolve => setTimeout(async () => {
+      }, 20_000) }),
+      new Promise<void>((resolve) => { setTimeout(async () => {
         const transactionStatus = await getTransaction(transactionId);
         expect([TransactionStatus.success, TransactionStatus.declined], "Transaction should be finished after 120 seconds").toContain(transactionStatus);
         resolve();
-      }, 130_000))
+      }, 125_000) })
     ]);
 
-  }, 140_000);
+  }, 150_000);
 
   it('should update the transaction status via webhook', async () => {
     let transactionId: number;
