@@ -107,34 +107,23 @@ describe('Third party API', () => {
   }, 150_000);
 
   it('should be working in perfect conditions aka the nominal case', async () => {
-    let transactionId: number;
-    const workingConditions = {
-      shouldTimeout: false,
-      shouldSendWebhook: false,
-    }
-
-    await request(app.getHttpServer())
+    const postTransactionResult = await request(app.getHttpServer())
       .post('/transaction')
-      .send({ amount: 20, workingConditions })
-      .expect((res) => {
-        transactionId = res.body.id;
-      })
-      .then(async () => {
-        
-        expect(await getTransaction(transactionId)).toEqual(TransactionStatus.initiated);
-        
-        await new Promise<void>(resolve => setTimeout(async () => {
-          const transaction = await transactionService.findById(transactionId);
-          expect(transaction).not.toBeNull();
-          if (transaction != null) {
-            expect(transaction.status == TransactionStatus.success ||
-              transaction.status == TransactionStatus.declined, "Transaction should be finished but is " + transaction.status).toBe(true);
-          }
-          resolve();
-        }, 11000));
+      .send({ amount: 20, workingConditions: {
+          shouldTimeout: false,
+          shouldSendWebhook: false,
+        }});
 
-      });
-  }, 150_00);
+    const transactionId = postTransactionResult.body.id;
+    expect(await getTransaction(transactionId)).toEqual(TransactionStatus.initiated);
+        
+    await delay(11_000);
+    
+    const transactionStatus = await getTransaction(transactionId);
+    expect(transactionStatus == TransactionStatus.success || transactionStatus == TransactionStatus.declined, 
+      "Transaction should be finished but is " + transactionStatus).toBe(true);
+
+  }, 12_000);
 });
 
 describe('HTTP POST Transaction on our backend', () => {
@@ -185,10 +174,13 @@ describe('HTTP POST Transaction on our backend', () => {
 });
 
 async function getTransaction(transactionId: number): Promise<number> {
-
   const transaction = await transactionService.findById(transactionId);
   if (!transaction) {
     throw new Error('Transaction not found');
   }
   return transaction.status;
+}
+
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
