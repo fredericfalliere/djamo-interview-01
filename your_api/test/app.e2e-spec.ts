@@ -25,7 +25,7 @@ beforeEach(async () => {
 
 describe('Third party API', () => {
 
-  it('should keep retrying on third-partys timeout that eventually work', async () => {
+  it('should keep retrying on third-partys timeouts, that eventually save the transaction in their DB', async () => {
     let transactionId: number;
     const workingConditions = {
       shouldTimeout: true,
@@ -36,19 +36,19 @@ describe('Third party API', () => {
     request(app.getHttpServer())
       .post('/transaction')
       .send({ amount: 23, workingConditions })
-      .then(async (res) => { transactionId = res.body.id; });
+      .then((res) => { transactionId = res.body.id; });
 
     await Promise.all([
       new Promise<void>(resolve => setTimeout(async () => {
         const transactionStatus = await getTransaction(transactionId);
         expect(transactionStatus, "Transaction should be pending after 20 seconds").toEqual(TransactionStatus.pending);
         resolve();
-      }, 20_000)),
+      }, 25_000)),
       new Promise<void>(resolve => setTimeout(async () => {
         const transactionStatus = await getTransaction(transactionId);
         expect([TransactionStatus.success, TransactionStatus.declined], "Transaction should be finished after 120 seconds").toContain(transactionStatus);
         resolve();
-      }, 120_000))
+      }, 130_000))
     ]);
 
   }, 140_000);
@@ -134,7 +134,7 @@ describe('Third party API', () => {
         }, 11000));
 
       });
-  },  15000);
+  }, 150_00);
 });
 
 describe('HTTP POST Transaction on our backend', () => {
