@@ -1,6 +1,6 @@
 import { HttpException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { ThirdPartyTransactionDto, TransactionDto, WorkingConditionsDto } from './transaction.dto';
+import { thirdPartyStatusToTransactionStatus, ThirdPartyTransactionDto, TransactionDto, TransactionStatus, WorkingConditionsDto } from './transaction.dto';
 import { catchError, of, tap, firstValueFrom, map } from 'rxjs';
 
 @Injectable()
@@ -24,9 +24,7 @@ export class ThirdPartyService {
     }
   }
 
-  async postTransaction(transaction: TransactionDto, workingConditions: WorkingConditionsDto, 
-    updateStatusCallback: (transactionId: number, status: string) => void, 
-    errorCallback: (err: any, transactionId: number) => void): Promise<void> {
+  async postTransaction(transaction: TransactionDto, workingConditions: WorkingConditionsDto): Promise<TransactionStatus | null> {
     this.logger.debug(`Posting transaction transactionId=${transaction.id} to ${process.env.THIRD_PARTY}/transaction`);
 
     if (!transaction.id || transaction.id === 0) {
@@ -43,12 +41,11 @@ export class ThirdPartyService {
         }).pipe(
           tap((res) => {
             this.logger.debug(`Transaction posted successfully`, res.data);
-            updateStatusCallback(transaction.id, res.data.status);
+            return thirdPartyStatusToTransactionStatus(res.data.status);
           }),
           catchError((error: HttpException) => {
-            errorCallback(error, transaction.id);
             this.logger.error(`Error posting transaction`, error);
-            return of(null);
+            throw error;
           })
         )
       );
@@ -56,6 +53,8 @@ export class ThirdPartyService {
       this.logger.error(`Error posting transaction`, error);
       throw error;
     }
+
+    return null;
   }
 
 }

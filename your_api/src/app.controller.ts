@@ -37,20 +37,22 @@ export class AppController {
     const workingConditions = { ...createTransactionDto.workingConditions };
 
     const transaction = await this.transactionService.insert(createTransactionDto);
-
     this.transactionGateway.broadcastNewTransaction(transaction);
 
-    this.thirdPartyService.postTransaction(transaction, workingConditions, 
-      async(transactionId, status) => {
-        this.transactionService.updateStatus(transactionId, thirdPartyStatusToTransactionStatus(status));
-        
-        this.broadcastTransactionUpdate(transactionId);
-      },
-      (err, transactionId) => {
-        this.logger.log(`Queueing transaction ${transactionId} for retry`);
+    this.thirdPartyService.postTransaction(transaction, workingConditions)
+      .then((status) => {
+        if (status != null) {
+          this.transactionService.updateStatus(transaction.id, status)
+          this.broadcastTransactionUpdate(transaction.id)
+        } else {
+          throw new Error('Third party returned null status');
+        }
+      })
+      .catch((error) => {
+        this.logger.log(`Queueing transaction ${transaction.id} for retry`);
         this.queue.add('check-transaction', 
           { 
-            transactionId, 
+            transactionId: transaction.id, 
             attempt: 0,
             startedAt: performance.now(),
           }, 
