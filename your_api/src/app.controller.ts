@@ -49,7 +49,8 @@ export class AppController {
         }
       })
       .catch((error) => {
-        this.logger.log(`Queueing transaction ${transaction.id} for retry`);
+        this.logger.error(`Queueing transaction ${transaction.id} for retry`);
+        this.logger.error(error);
         this.queue.add('check-transaction', 
           { 
             transactionId: transaction.id, 
