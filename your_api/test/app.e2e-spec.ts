@@ -128,11 +128,10 @@ describe('Third party API', () => {
           expect(transaction).not.toBeNull();
           if (transaction != null) {
             expect(transaction.status == TransactionStatus.success ||
-              transaction.status == TransactionStatus.declined).toBe(true);
+              transaction.status == TransactionStatus.declined, "Transaction should be finished but is " + transaction.status).toBe(true);
           }
           resolve();
-        }, 10000));
-        
+        }, 11000));
 
       });
   },  15000);
