@@ -32,14 +32,14 @@ export class ThirdPartyService {
     }
     
     try {
-      await firstValueFrom(
+      return await firstValueFrom(
         this.httpService.post(`${process.env.THIRD_PARTY}/transaction`, { 
           id: transaction.id,
           amount: transaction.amount,
           webhookUrl: `${process.env.WEBHOOK_URL}/webhookTransaction/${transaction.id}`,
           workingConditions
         }).pipe(
-          tap((res) => {
+          map((res) => {
             this.logger.debug(`Transaction posted successfully`, res.data);
             return thirdPartyStatusToTransactionStatus(res.data.status);
           }),
@@ -53,8 +53,6 @@ export class ThirdPartyService {
       this.logger.error(`Error posting transaction`, error);
       throw error;
     }
-
-    return null;
   }
 
 }
