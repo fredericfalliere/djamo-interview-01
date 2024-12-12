@@ -34,20 +34,20 @@ export class CheckTransactionProcessor {
             if (transaction == null) {
                 const elapsedTime = performance.now() - job.data.startedAt;
                 if (elapsedTime < FAULT_TOLERANCE_DELAY) {
-                    this.logger.error(`Transaction ${transactionId} not found : will be retried because of our fault tolerance`);
+                    this.logger.debug(`Transaction ${transactionId} not found : will be retried because of our fault tolerance`);
                     await this.transactionService.updateStatus(transactionId, TransactionStatus.pending);
                     this.queue.add('check-transaction', { transactionId, attempt: newAttempt, startedAt }, { delay: this.calculateDelayForAttempt(newAttempt) });
                 } else {
-                    this.logger.error(`Transaction ${transactionId} not found : marked as abandon`);
+                    this.logger.debug(`Transaction ${transactionId} not found : marked as abandon`);
                     await this.transactionService.updateStatus(transactionId, TransactionStatus.abandon);
                 }
                 return;
             } else {
                 if (transaction.status == 'pending') {
-                    this.logger.error(`Transaction ${transactionId} is pending : will be retried`);
+                    this.logger.debug(`Transaction ${transactionId} is pending : will be retried`);
                     this.queue.add('check-transaction', { transactionId, attempt: newAttempt, startedAt }, { delay: this.calculateDelayForAttempt(newAttempt) });
                 } else {
-                    this.logger.error(`Transaction ${transactionId} is not pending : status=${transaction.status}`);
+                    this.logger.debug(`Transaction ${transactionId} is not pending : status=${transaction.status}`);
                     const status = thirdPartyStatusToTransactionStatus(transaction.status);
                     await this.transactionService.updateStatus(transactionId, status);
                 }
